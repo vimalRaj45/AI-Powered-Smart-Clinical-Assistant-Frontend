@@ -69,7 +69,7 @@ export const AutomationController: React.FC<AutomationControllerProps> = ({
       )}
 
       {/* FLOATING TRANSPARENT AUTOMATION HUD CONTROLLER */}
-      <div className="fixed bottom-5 right-5 z-[9990] max-w-sm sm:max-w-md w-full px-3">
+      <div className="fixed bottom-20 lg:bottom-5 right-2 sm:right-5 left-2 sm:left-auto z-[9990] max-w-sm sm:max-w-md px-1 sm:px-3">
         <div className="bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-4 shadow-2xl border border-sky-500/30 shadow-sky-950/40 transition-all">
           
           {/* Header Bar */}

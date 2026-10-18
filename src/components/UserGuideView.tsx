@@ -243,6 +243,115 @@ export const UserGuideView: React.FC<UserGuideViewProps> = ({ onStartWorkflow })
           ))}
         </div>
       </div>
+
+      {/* Direct Application & Documentation Links Hub */}
+      <div className="medical-card rounded-2xl p-6 bg-gradient-to-br from-indigo-50/50 via-white to-sky-50/50 border border-indigo-200/80">
+        <div className="flex items-center space-x-2.5 pb-3 border-b border-slate-200">
+          <div className="p-2 rounded-xl bg-sky-100 text-sky-700 border border-sky-200">
+            <i className="bi bi-link-45deg text-xl"></i>
+          </div>
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-900">Direct Application & Documentation Links</h3>
+            <p className="text-xs text-slate-500">Quick URL bookmarks and shareable deep links for this deployment</p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+          <a
+            href="/help"
+            onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/help'); window.dispatchEvent(new PopStateEvent('popstate')); }}
+            className="p-3.5 rounded-xl bg-white border border-slate-200 hover:border-sky-400 hover:shadow-md transition-all group block"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-sky-700 font-bold">/help & /docs</span>
+              <i className="bi bi-arrow-up-right text-slate-400 group-hover:text-sky-600 transition-colors"></i>
+            </div>
+            <p className="text-slate-700 font-bold mt-1">Documentation & Guide</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">Workflow instructions & FAQs</p>
+          </a>
+
+          <a
+            href="/DR_PRIYA_FULL_DOCUMENTATION.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-3.5 rounded-xl bg-white border border-rose-200 hover:border-rose-400 hover:shadow-md transition-all group block"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-rose-700 font-bold">/DR_PRIYA_FULL_DOCS.html</span>
+              <i className="bi bi-file-earmark-pdf-fill text-slate-400 group-hover:text-rose-600 transition-colors"></i>
+            </div>
+            <p className="text-slate-700 font-bold mt-1">Print / Save as PDF</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">High-definition printable PDF format</p>
+          </a>
+
+          <a
+            href="/FULL_DOCUMENTATION.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-3.5 rounded-xl bg-white border border-purple-200 hover:border-purple-400 hover:shadow-md transition-all group block"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-purple-700 font-bold">/FULL_DOCUMENTATION.md</span>
+              <i className="bi bi-file-earmark-code text-slate-400 group-hover:text-purple-600 transition-colors"></i>
+            </div>
+            <p className="text-slate-700 font-bold mt-1">Architecture & API Docs</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">Direct technical specification file</p>
+          </a>
+
+          <a
+            href="/CLINICAL_TALKING_SCRIPTS.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-3.5 rounded-xl bg-white border border-teal-200 hover:border-teal-400 hover:shadow-md transition-all group block"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-teal-700 font-bold">/CLINICAL_TALKING_SCRIPTS.md</span>
+              <i className="bi bi-mic text-slate-400 group-hover:text-teal-600 transition-colors"></i>
+            </div>
+            <p className="text-slate-700 font-bold mt-1">Voice Talking Scripts</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">12 multilingual dictation scripts</p>
+          </a>
+
+          <a
+            href="/consultation"
+            onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}
+            className="p-3.5 rounded-xl bg-white border border-slate-200 hover:border-sky-400 hover:shadow-md transition-all group block"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-rose-700 font-bold">/consultation</span>
+              <i className="bi bi-arrow-up-right text-slate-400 group-hover:text-rose-600 transition-colors"></i>
+            </div>
+            <p className="text-slate-700 font-bold mt-1">Live Dictation Studio</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">Voice recording & SSE notes</p>
+          </a>
+
+          <a
+            href="/records"
+            onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/records'); window.dispatchEvent(new PopStateEvent('popstate')); }}
+            className="p-3.5 rounded-xl bg-white border border-slate-200 hover:border-sky-400 hover:shadow-md transition-all group block"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-emerald-700 font-bold">/records</span>
+              <i className="bi bi-arrow-up-right text-slate-400 group-hover:text-emerald-600 transition-colors"></i>
+            </div>
+            <p className="text-slate-700 font-bold mt-1">Patient Encounters</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">Historical records & batch export</p>
+          </a>
+
+          <a
+            href="/coding-ref"
+            onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/coding-ref'); window.dispatchEvent(new PopStateEvent('popstate')); }}
+            className="p-3.5 rounded-xl bg-white border border-slate-200 hover:border-sky-400 hover:shadow-md transition-all group block"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-indigo-700 font-bold">/coding-ref</span>
+              <i className="bi bi-arrow-up-right text-slate-400 group-hover:text-indigo-600 transition-colors"></i>
+            </div>
+            <p className="text-slate-700 font-bold mt-1">ICD-10 & CPT Catalog</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">Diagnosis & billing dictionary</p>
+          </a>
+        </div>
+      </div>
     </div>
   );
 };

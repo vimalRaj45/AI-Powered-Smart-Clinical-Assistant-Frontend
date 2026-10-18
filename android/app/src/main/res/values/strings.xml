@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Dr. Priya Clinical Assistant</string>
+    <string name="title_activity_main">Dr. Priya Clinical Assistant</string>
+    <string name="package_name">com.doctorpriya.app</string>
+    <string name="custom_url_scheme">com.doctorpriya.app</string>
+</resources>

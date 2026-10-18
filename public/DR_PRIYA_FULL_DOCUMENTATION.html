@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dr. Priya — Full Technical Documentation & Architecture Specification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --secondary: #0f172a;
+      --accent: #059669;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .top-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .top-toolbar h2 {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-print {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+    }
+
+    .btn-print:hover {
+      background: #0284c7;
+      transform: translateY(-1px);
+    }
+
+    .doc-container {
+      max-width: 900px;
+      margin: 30px auto;
+      background: var(--card-bg);
+      padding: 50px 60px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
+
+    .cover-header {
+      border-bottom: 2px solid #e0f2fe;
+      padding-bottom: 25px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .clinic-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: #e0f2fe;
+      color: #0369a1;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 32px 0 14px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 20px 0 10px 0;
+    }
+
+    p {
+      margin-bottom: 14px;
+      color: #334155;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: #f1f5f9;
+      color: #0369a1;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 10px;
+      overflow-x: auto;
+      margin: 16px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border: none;
+    }
+
+    .badge-grid {
+      display: grid;
+      grid-template-cols: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .feature-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .feature-card h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .feature-card p {
+      font-size: 12px;
+      color: #64748b;
+      margin: 0;
+    }
+
+    .meta-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      font-size: 13px;
+      color: #166534;
+    }
+
+    ol, ul {
+      margin-left: 20px;
+      margin-bottom: 14px;
+      color: #334155;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    .footer-stamp {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    /* Print Specific Rules for Clean PDF Export */
+    @media print {
+      body {
+        background: #fff;
+        color: #000;
+        font-size: 12px;
+      }
+
+      .top-toolbar {
+        display: none !important;
+      }
+
+      .doc-container {
+        margin: 0;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+        max-width: 100%;
+      }
+
+      h2 {
+        page-break-after: avoid;
+        margin-top: 24px;
+      }
+
+      table, pre, .feature-card {
+        page-break-inside: avoid;
+      }
+
+      a {
+        text-decoration: none;
+        color: #000;
+      }
+
+      .footer-stamp {
+        page-break-after: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Print Bar -->
+  <div class="top-toolbar">
+    <h2><i class="bi bi-file-earmark-pdf-fill" style="color: #38bdf8;"></i> Dr. Priya Documentation PDF</h2>
+    <div>
+      <button onclick="window.print()" class="btn-print">
+        <i class="bi bi-printer-fill"></i> Save as PDF / Print Document
+      </button>
+    </div>
+  </div>
+
+  <div class="doc-container">
+    <div class="cover-header">
+      <div>
+        <span class="clinic-badge">Autonomous Clinical Documentation Studio</span>
+        <h1>Dr. Priya — AI-Powered Smart Clinical Assistant</h1>
+        <div class="subtitle">Complete Technical Specification, Cloud Architecture & API Guide</div>
+      </div>
+      <div style="text-align: right; font-size: 11px; color: #64748b;">
+        <strong>Version:</strong> 2.4.0 (Enterprise)<br>
+        <strong>Updated:</strong> September 2026<br>
+        <strong>Status:</strong> Certified Active
+      </div>
+    </div>
+
+    <!-- Summary Box -->
+    <div class="meta-box">
+      <strong>🌟 Executive System Summary:</strong> Dr. Priya Clinical Assistant is an autonomous, AI-driven medical documentation studio that listens to doctor-patient conversations in any language, extracts vital signs, generates structured SOAP notes in real time via Fastify Server-Sent Events (SSE), assigns ICD-10 & CPT billing codes, produces official Superbills, and automatically delivers encrypted e-Prescription PDFs via Baileys WhatsApp Multi-Device sockets.
+    </div>
+
+    <!-- Table of Contents -->
+    <h2><i class="bi bi-list-ol"></i> Table of Contents</h2>
+    <ol>
+      <li><strong>Complete Technology Stack & Dependencies</strong></li>
+      <li><strong>System Architecture & Data Flow</strong></li>
+      <li><strong>Database Schema & PostgreSQL Data Models</strong></li>
+      <li><strong>Core Functional Modules</strong>
+        <ul>
+          <li>Universal Multilingual Speech Recognition (OpenAI Whisper)</li>
+          <li>Real-Time SSE Streaming Clinical Engine (Mistral-7B)</li>
+          <li>Medical Coding & Superbill Export Suite (ICD-10 / CPT)</li>
+          <li>Certified e-Prescription & Itemized Billing Engine</li>
+          <li>Baileys WhatsApp Multi-Device Gateway</li>
+          <li>Autonomous Clinical Simulation Pilot</li>
+        </ul>
+      </li>
+      <li><strong>API Endpoints Matrix & Protocols</strong></li>
+      <li><strong>Cloud Deployment Architecture (Cloudflare + Render + Neon)</strong></li>
+      <li><strong>Local Development & Setup Guide</strong></li>
+      <li><strong>Security, Privacy & HIPAA Compliance</strong></li>
+    </ol>
+
+    <!-- Tech Stack -->
+    <h2><i class="bi bi-cpu"></i> 1. Complete Technology Stack</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Technology</th>
+          <th>Version</th>
+          <th>Role & Architecture Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Frontend UI</strong></td>
+          <td>React</td>
+          <td><code>19.0.0</code></td>
+          <td>Reactive clinical dashboard with real-time audio visualizers</td>
+        </tr>
+        <tr>
+          <td><strong>Tooling & Bundler</strong></td>
+          <td>Vite</td>
+          <td><code>6.2.0</code></td>
+          <td>Ultra-fast ES module development & production bundler</td>
+        </tr>
+        <tr>
+          <td><strong>Language</strong></td>
+          <td>TypeScript</td>
+          <td><code>5.8.2</code></td>
+          <td>Full-stack end-to-end type safety across client and server</td>
+        </tr>
+        <tr>
+          <td><strong>Styling</strong></td>
+          <td>Tailwind CSS</td>
+          <td><code>3.4.17</code></td>
+          <td>Utility-first responsive clinical design system</td>
+        </tr>
+        <tr>
+          <td><strong>PDF Generation</strong></td>
+          <td>jsPDF & html2canvas</td>
+          <td><code>4.2.1 / 1.4.1</code></td>
+          <td>Client-side high-resolution Superbill and Prescription rendering</td>
+        </tr>
+        <tr>
+          <td><strong>Backend Server</strong></td>
+          <td>Fastify</td>
+          <td><code>5.2.1</code></td>
+          <td>High-throughput Node.js HTTP/SSE server</td>
+        </tr>
+        <tr>
+          <td><strong>Database</strong></td>
+          <td>Neon PostgreSQL</td>
+          <td><code>PostgreSQL 16</code></td>
+          <td>Serverless cloud relational database with JSONB indexing</td>
+        </tr>
+        <tr>
+          <td><strong>ORM</strong></td>
+          <td>Drizzle ORM</td>
+          <td><code>0.39.3</code></td>
+          <td>Type-safe SQL schema definitions & query builder</td>
+        </tr>
+        <tr>
+          <td><strong>Speech Recognition</strong></td>
+          <td>Cloudflare Workers AI</td>
+          <td><code>@cf/openai/whisper</code></td>
+          <td>Multilingual speech-to-text transcription engine</td>
+        </tr>
+        <tr>
+          <td><strong>Clinical LLM</strong></td>
+          <td>Cloudflare Workers AI</td>
+          <td><code>@cf/mistral-7b-instruct</code></td>
+          <td>Clinical reasoning, SOAP note synthesis & ICD/CPT coding</td>
+        </tr>
+        <tr>
+          <td><strong>Messaging Gateway</strong></td>
+          <td>@whiskeysockets/baileys</td>
+          <td><code>6.7.9</code></td>
+          <td>Direct WebSocket WhatsApp Multi-Device client</td>
+        </tr>
+        <tr>
+          <td><strong>Edge CDN</strong></td>
+          <td>Cloudflare Pages</td>
+          <td>Global Edge</td>
+          <td>Static frontend distribution with SPA edge routing</td>
+        </tr>
+        <tr>
+          <td><strong>Cloud Hosting</strong></td>
+          <td>Render Web Services</td>
+          <td>Node.js 22+</td>
+          <td>Scalable container hosting for the Fastify API</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Architecture Diagram -->
+    <h2><i class="bi bi-diagram-3"></i> 2. System Architecture & Data Flow</h2>
+    <pre><code>┌─────────────────────────────────────────────────────────────────────────────┐
+│                 Doctor Voice / Multilingual Audio Input                     │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│            Cloudflare Workers AI Whisper Audio Transcription Engine         │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ Raw Transcript
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│           Fastify 5.x Server-Sent Events (SSE) Stream Pipeline              │
+│            • Cloudflare Mistral-7B Clinical Reasoning Engine                │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+         ┌─────────────────────────────┴─────────────────────────────┐
+         ▼                                                           ▼
+┌──────────────────────────────────────┐    ┌──────────────────────────────────────┐
+│  Progressive Real-Time Extraction    │    │      Neon Serverless PostgreSQL      │
+│  • Blood Pressure, Pulse, SpO2, Temp │    │  • Patients Registry                 │
+│  • Symptoms & Physical Findings      │    │  • Consultations & SOAP History      │
+│  • SOAP Note (S, O, A, P)            │    │  • Medical Coding Audit Trail        │
+│  • ICD-10 & CPT Billing Codes        │    └──────────────────────────────────────┘
+└──────────────────┬───────────────────┘
+                   │
+    ┌──────────────┴──────────────────────────┬────────────────────────────┐
+    ▼                                         ▼                            ▼
+┌───────────────────────────────┐ ┌───────────────────────────────┐ ┌───────────────────────────────┐
+│ Medical Code Export Studio    │ │ Certified e-Prescription &    │ │ Baileys WhatsApp Gateway      │
+│ • Official Superbill PDF      │ │ Itemized Billing              │ │ • Live In-App QR Device Scan  │
+│ • RFC 4180 CSV Export         │ │ • Dynamic Drug Presets        │ │ • Automated PDF Dispatch      │
+│ • HL7 / FHIR Interop JSON     │ │ • Dosage, Frequency, Duration │ │ • Delivery Status Tracking    │
+│ • 1-Click EHR Clipboard Copy  │ │ • Physician Digital Stamp     │ │ • Patient Verification        │
+└───────────────────────────────┘ └───────────────────────────────┘ └───────────────────────────────┘</code></pre>
+
+    <!-- Database Schema -->
+    <h2><i class="bi bi-database"></i> 3. Database Schema & Data Models</h2>
+    <pre><code>CREATE TABLE patients (
+  id SERIAL PRIMARY KEY,
+  mrn VARCHAR(50) UNIQUE NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  age INTEGER NOT NULL,
+  gender VARCHAR(20) NOT NULL,
+  phone VARCHAR(50) NOT NULL,
+  email VARCHAR(255),
+  medical_history TEXT,
+  allergies TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE consultations (
+  id SERIAL PRIMARY KEY,
+  patient_id INTEGER REFERENCES patients(id),
+  status VARCHAR(50) DEFAULT 'draft',
+  consultation_date TIMESTAMP DEFAULT NOW(),
+  audio_url TEXT,
+  raw_transcript TEXT,
+  structured_data JSONB, -- Vitals, Symptoms, Exam Findings
+  soap_note JSONB,       -- Subjective, Objective, Assessment, Plan
+  icd_codes JSONB,       -- Array<{ code, description, category, confidence, rationale }>
+  cpt_codes JSONB,       -- Array<{ code, description, category, rationale }>
+  doctor_notes TEXT,
+  doctor_name VARCHAR(255) DEFAULT 'Dr. Priya',
+  approved_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);</code></pre>
+
+    <!-- Core Functional Modules -->
+    <h2><i class="bi bi-gear-wide-connected"></i> 4. Core Functional Modules</h2>
+    
+    <div class="badge-grid">
+      <div class="feature-card">
+        <h4><i class="bi bi-translate text-sky-600"></i> Universal Multilingual STT</h4>
+        <p>Transcribes doctor-patient dialogue in English, Hindi, Spanish, French, German, Tamil, and Arabic with automatic clinical entity translation.</p>
+      </div>
+      <div class="feature-card">
+        <h4><i class="bi bi-lightning-charge text-amber-500"></i> Real-Time SSE Streaming</h4>
+        <p>Progressively parses vitals, symptoms, physical exam findings, and SOAP notes in real time without blocking UI loaders.</p>
+      </div>
+      <div class="feature-card">
+        <h4><i class="bi bi-file-earmark-medical text-indigo-600"></i> Superbill & Code Exporter</h4>
+        <p>Exports official Superbill PDFs, RFC 4180 CSV spreadsheets, FHIR JSON bundles, and 1-click clipboard formats for hospital EHRs.</p>
+      </div>
+      <div class="feature-card">
+        <h4><i class="bi bi-whatsapp text-emerald-600"></i> Baileys WhatsApp Gateway</h4>
+        <p>Native multi-device WebSocket connection with in-app QR pairing for automated PDF prescription dispatch.</p>
+      </div>
+    </div>
+
+    <!-- API Endpoints -->
+    <h2><i class="bi bi-cloud-arrow-up"></i> 5. API Endpoints Matrix</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Endpoint</th>
+          <th>Description</th>
+          <th>Payload / Response Format</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>/api/health</code></td>
+          <td>Health & database connectivity check</td>
+          <td><code>{ status: 'online', database: 'Neon' }</code></td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>/api/patients</code></td>
+          <td>List all clinic patients</td>
+          <td><code>Array&lt;Patient&gt;</code></td>
+        </tr>
+        <tr>
+          <td><code>POST</code></td>
+          <td><code>/api/patients</code></td>
+          <td>Register a new patient</td>
+          <td><code>{ name, age, gender, phone, history }</code></td>
+        </tr>
+        <tr>
+          <td><code>POST</code></td>
+          <td><code>/api/consultations/transcribe</code></td>
+          <td>Whisper audio transcription</td>
+          <td><code>FormData (file: Blob) ➔ { text }</code></td>
+        </tr>
+        <tr>
+          <td><code>POST</code></td>
+          <td><code>/api/consultations/process-ai-stream</code></td>
+          <td>Server-Sent Events streaming AI</td>
+          <td><code>Stream: event: vitals, event: soap, etc.</code></td>
+        </tr>
+        <tr>
+          <td><code>POST</code></td>
+          <td><code>/api/consultations/:id/approve</code></td>
+          <td>Physician sign-off & certification</td>
+          <td><code>{ doctorNotes, doctorName, soapNote }</code></td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>/api/whatsapp/qr</code></td>
+          <td>Fetch live encrypted pairing QR</td>
+          <td><code>{ connected: boolean, qrDataUrl: string }</code></td>
+        </tr>
+        <tr>
+          <td><code>POST</code></td>
+          <td><code>/api/whatsapp/send-prescription</code></td>
+          <td>Dispatch prescription to patient</td>
+          <td><code>{ phone, patientName, medications, pdfBase64 }</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Deployment URLs -->
+    <h2><i class="bi bi-globe"></i> 6. Live Cloud Deployments & Deep Links</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Platform</th>
+          <th>Live Production URL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Frontend Application</strong></td>
+          <td>Cloudflare Pages</td>
+          <td><a href="https://smartclinicalassistant.pages.dev" target="_blank"><code>https://smartclinicalassistant.pages.dev</code></a></td>
+        </tr>
+        <tr>
+          <td><strong>Backend API Server</strong></td>
+          <td>Render Web Services</td>
+          <td><a href="https://ai-powered-smart-clinical-assistant.onrender.com" target="_blank"><code>https://ai-powered-smart-clinical-assistant.onrender.com</code></a></td>
+        </tr>
+        <tr>
+          <td><strong>Full Documentation File</strong></td>
+          <td>Cloudflare Edge</td>
+          <td><a href="https://smartclinicalassistant.pages.dev/FULL_DOCUMENTATION.md" target="_blank"><code>https://smartclinicalassistant.pages.dev/FULL_DOCUMENTATION.md</code></a></td>
+        </tr>
+        <tr>
+          <td><strong>Multilingual Talking Scripts</strong></td>
+          <td>Cloudflare Edge</td>
+          <td><a href="https://smartclinicalassistant.pages.dev/CLINICAL_TALKING_SCRIPTS.md" target="_blank"><code>https://smartclinicalassistant.pages.dev/CLINICAL_TALKING_SCRIPTS.md</code></a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="footer-stamp">
+      <div><strong>Dr. Priya AI-Powered Clinical Assistant</strong> &bull; Confidential & Proprietary Documentation</div>
+      <div>Generated for Healthcare IT & Medical Billing Compliance</div>
+    </div>
+  </div>
+
+</body>
+</html>

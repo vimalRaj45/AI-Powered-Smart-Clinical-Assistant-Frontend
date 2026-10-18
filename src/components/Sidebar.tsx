@@ -2,8 +2,8 @@ import React from 'react';
 import Swal from 'sweetalert2';
 
 interface SidebarProps {
-  activeTab: 'consultation' | 'records' | 'coding-ref' | 'guide';
-  setActiveTab: (tab: 'consultation' | 'records' | 'coding-ref' | 'guide') => void;
+  activeTab: 'consultation' | 'records' | 'coding-ref' | 'diseases-ref' | 'guide';
+  setActiveTab: (tab: 'consultation' | 'records' | 'coding-ref' | 'diseases-ref' | 'guide') => void;
   isDesktopCollapsed: boolean;
   setIsDesktopCollapsed: (collapsed: boolean | ((prev: boolean) => boolean)) => void;
   isMobileDrawerOpen: boolean;
@@ -30,7 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   loggedInDoctor,
   onLogout,
 }) => {
-  const handleNavClick = (tab: 'consultation' | 'records' | 'coding-ref' | 'guide') => {
+  const handleNavClick = (tab: 'consultation' | 'records' | 'coding-ref' | 'diseases-ref' | 'guide') => {
     setActiveTab(tab);
     setIsMobileDrawerOpen(false);
   };
@@ -74,6 +74,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: 'bi-journal-medical',
       badge: 'WHO / AMA',
       badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
+    },
+    {
+      id: 'diseases-ref',
+      label: 'Diseases & Conditions',
+      shortLabel: 'Diseases',
+      icon: 'bi-capsule-pill',
+      badge: '1mg / Medindia',
+      badgeColor: 'bg-amber-50 text-amber-800 border-amber-300',
     },
     {
       id: 'guide',

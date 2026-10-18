@@ -8,6 +8,7 @@ import {
   exportMedicalCodesToJson,
   copyMedicalCodesToClipboard,
 } from '../utils/medicalCodeExport';
+import { downloadOrSharePdf } from '../utils/mobilePdfService';
 
 interface MedicalCodeExportModalProps {
   isOpen: boolean;
@@ -132,16 +133,7 @@ export const MedicalCodeExportModal: React.FC<MedicalCodeExportModalProps> = ({
 
       const mrn = patient?.mrn || 'encounter';
       const fileName = `Superbill_Coding_Sheet_${mrn}_${new Date().toISOString().slice(0, 10)}.pdf`;
-      pdf.save(fileName);
-
-      Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: 'Superbill PDF downloaded!',
-        showConfirmButton: false,
-        timer: 2000,
-      });
+      await downloadOrSharePdf(pdf, fileName, 'Official Medical Superbill');
     } catch (err) {
       console.error('PDF Generation Error:', err);
       Swal.fire({

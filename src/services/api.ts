@@ -1,8 +1,30 @@
 import type { Patient, Consultation, AIClinicalResult } from '../types';
 
+import { Capacitor } from '@capacitor/core';
+
+const PRODUCTION_BACKEND_URL = 'https://ai-powered-smart-clinical-assistant.onrender.com';
+
 const getApiBase = (): string => {
-  const envUrl = (import.meta as any).env?.VITE_API_BASE_URL || (import.meta as any).env?.VITE_API_URL || '';
-  if (!envUrl) return '/api';
+  const envUrl =
+    (import.meta as any).env?.VITE_API_BASE_URL ||
+    (import.meta as any).env?.VITE_API_URL ||
+    PRODUCTION_BACKEND_URL;
+
+  // In native Capacitor environment, always use full URL (no local Vite proxy)
+  if (Capacitor.isNativePlatform()) {
+    const clean = envUrl.replace(/\/+$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
+  }
+
+  // In local browser dev when served from localhost without explicit VITE_API_BASE_URL, use Vite local proxy
+  if (
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+    !(import.meta as any).env?.VITE_API_BASE_URL
+  ) {
+    return '/api';
+  }
+
   const clean = envUrl.replace(/\/+$/, '');
   return clean.endsWith('/api') ? clean : `${clean}/api`;
 };
@@ -232,8 +254,55 @@ export const api = {
     return data;
   },
 
-  async getWhatsAppStatus(): Promise<{ connected: boolean; qrAvailable: boolean }> {
+  async getWhatsAppStatus(): Promise<{ connected: boolean; qrAvailable: boolean; user?: string | null }> {
     const res = await fetch(`${API_BASE}/whatsapp/status`);
     return res.json();
   },
+
+  async getWhatsAppQr(): Promise<{
+    connected: boolean;
+    qrDataUrl: string | null;
+    qrRaw: string | null;
+    user: string | null;
+  }> {
+    const res = await fetch(`${API_BASE}/whatsapp/qr`);
+    return res.json();
+  },
+
+  async logoutWhatsApp(): Promise<any> {
+    const res = await fetch(`${API_BASE}/whatsapp/logout`, { method: 'POST' });
+    return res.json();
+  },
+
+  // Patient Reports & Diagnostics (Neon PostgreSQL Blob Storage)
+  async getPatientReports(patientId?: number | string, mrn?: string): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (mrn) params.append('mrn', String(mrn));
+    if (patientId) params.append('patientId', String(patientId));
+    const res = await fetch(`${API_BASE}/reports?${params.toString()}`);
+    const data = await res.json();
+    return data.data || [];
+  },
+
+  async uploadPatientReport(report: any): Promise<any> {
+    const res = await fetch(`${API_BASE}/reports`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(report),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to upload report to database');
+    return data.data;
+  },
+
+  async deletePatientReport(id: string | number): Promise<any> {
+    const res = await fetch(`${API_BASE}/reports/${id}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to delete report from database');
+    return data;
+  },
 };
+
+export { API_BASE };

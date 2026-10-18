@@ -27,8 +27,7 @@ export const WhatsAppGatewayModal: React.FC<WhatsAppGatewayModalProps> = ({
 
   const fetchStatusAndQr = async () => {
     try {
-      const res = await fetch('/api/whatsapp/qr');
-      const data = await res.json();
+      const data = await api.getWhatsAppQr();
       setStatus({
         connected: !!data.connected,
         qrDataUrl: data.qrDataUrl,
@@ -56,7 +55,7 @@ export const WhatsAppGatewayModal: React.FC<WhatsAppGatewayModalProps> = ({
   const handleLogout = async () => {
     setIsResetting(true);
     try {
-      await fetch('/api/whatsapp/logout', { method: 'POST' });
+      await api.logoutWhatsApp();
       await fetchStatusAndQr();
       Swal.fire({
         icon: 'info',

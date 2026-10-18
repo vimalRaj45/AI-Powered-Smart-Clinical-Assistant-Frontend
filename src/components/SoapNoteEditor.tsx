@@ -75,24 +75,25 @@ export const SoapNoteEditor: React.FC<SoapNoteEditorProps> = ({
       </div>
 
       {/* Navigation Pills */}
-      <div className="flex items-center space-x-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200">
+      <div className="flex items-center space-x-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200 overflow-x-auto scrollbar-none">
         {[
-          { key: 'all', label: 'All Sections' },
-          { key: 'subjective', label: 'S - Subjective' },
-          { key: 'objective', label: 'O - Objective' },
-          { key: 'assessment', label: 'A - Assessment' },
-          { key: 'plan', label: 'P - Plan' },
+          { key: 'all', label: 'All Sections', short: 'All' },
+          { key: 'subjective', label: 'S - Subjective', short: 'S' },
+          { key: 'objective', label: 'O - Objective', short: 'O' },
+          { key: 'assessment', label: 'A - Assessment', short: 'A' },
+          { key: 'plan', label: 'P - Plan', short: 'P' },
         ].map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key as any)}
-            className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex-1 min-w-0 py-1.5 px-1.5 sm:px-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap text-center ${
               activeTab === tab.key
                 ? 'bg-white text-sky-900 shadow-sm border border-slate-200'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            {tab.label}
+            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="sm:hidden">{tab.short}</span>
           </button>
         ))}
       </div>

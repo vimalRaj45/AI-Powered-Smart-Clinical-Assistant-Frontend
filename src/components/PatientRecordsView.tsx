@@ -3,6 +3,7 @@ import { api } from '../services/api';
 import type { Patient, Consultation } from '../types';
 import { ConsultationDetailModal } from './ConsultationDetailModal';
 import { PrescriptionAndBillingModal } from './PrescriptionAndBillingModal';
+import { PatientReportsModal } from './PatientReportsModal';
 import { exportBatchMedicalCodesToCsv } from '../utils/medicalCodeExport';
 
 interface PatientRecordsViewProps {
@@ -24,6 +25,8 @@ export const PatientRecordsView: React.FC<PatientRecordsViewProps> = ({
   const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'in_review' | 'draft'>('all');
   const [selectedConsultation, setSelectedConsultation] = useState<Consultation | null>(null);
   const [selectedRxConsultation, setSelectedRxConsultation] = useState<Consultation | null>(null);
+  const [selectedReportPatient, setSelectedReportPatient] = useState<Patient | null>(null);
+  const [mobileTab, setMobileTab] = useState<'encounters' | 'patients'>('encounters');
 
   const loadData = async () => {
     try {
@@ -89,54 +92,80 @@ export const PatientRecordsView: React.FC<PatientRecordsViewProps> = ({
   const totalPending = consultations.filter((c) => c.status === 'in_review' || c.status === 'draft').length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Stats Overview Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="medical-card rounded-2xl p-4 flex items-center justify-between">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="medical-card rounded-2xl p-3 sm:p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500">Total Patients</p>
-            <p className="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5">{patients.length}</p>
+            <p className="text-[11px] sm:text-xs font-semibold text-slate-500">Total Patients</p>
+            <p className="text-lg sm:text-2xl font-bold text-slate-900 mt-0.5">{patients.length}</p>
           </div>
-          <div className="p-2.5 rounded-xl bg-sky-50 text-sky-700 border border-sky-200">
-            <i className="bi bi-people-fill text-lg sm:text-xl"></i>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-sky-50 text-sky-700 border border-sky-200">
+            <i className="bi bi-people-fill text-base sm:text-xl"></i>
           </div>
         </div>
 
-        <div className="medical-card rounded-2xl p-4 flex items-center justify-between">
+        <div className="medical-card rounded-2xl p-3 sm:p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500">Consultations</p>
-            <p className="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5">{consultations.length}</p>
+            <p className="text-[11px] sm:text-xs font-semibold text-slate-500">Consultations</p>
+            <p className="text-lg sm:text-2xl font-bold text-slate-900 mt-0.5">{consultations.length}</p>
           </div>
-          <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200">
-            <i className="bi bi-file-earmark-medical-fill text-lg sm:text-xl"></i>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <i className="bi bi-file-earmark-medical-fill text-base sm:text-xl"></i>
           </div>
         </div>
 
-        <div className="medical-card rounded-2xl p-4 flex items-center justify-between">
+        <div className="medical-card rounded-2xl p-3 sm:p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500">Certified Records</p>
-            <p className="text-xl sm:text-2xl font-bold text-emerald-700 mt-0.5">{totalApproved}</p>
+            <p className="text-[11px] sm:text-xs font-semibold text-slate-500">Certified</p>
+            <p className="text-lg sm:text-2xl font-bold text-emerald-700 mt-0.5">{totalApproved}</p>
           </div>
-          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <i className="bi bi-patch-check-fill text-lg sm:text-xl"></i>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <i className="bi bi-patch-check-fill text-base sm:text-xl"></i>
           </div>
         </div>
 
-        <div className="medical-card rounded-2xl p-4 flex items-center justify-between">
+        <div className="medical-card rounded-2xl p-3 sm:p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500">Pending Review</p>
-            <p className="text-xl sm:text-2xl font-bold text-amber-700 mt-0.5">{totalPending}</p>
+            <p className="text-[11px] sm:text-xs font-semibold text-slate-500">Pending Review</p>
+            <p className="text-lg sm:text-2xl font-bold text-amber-700 mt-0.5">{totalPending}</p>
           </div>
-          <div className="p-2.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200">
-            <i className="bi bi-clock-history text-lg sm:text-xl"></i>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200">
+            <i className="bi bi-clock-history text-base sm:text-xl"></i>
           </div>
         </div>
+      </div>
+
+      {/* Mobile Segmented Toggle (Hidden on desktop) */}
+      <div className="lg:hidden flex bg-slate-200/80 p-1 rounded-xl">
+        <button
+          onClick={() => setMobileTab('encounters')}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+            mobileTab === 'encounters'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-600'
+          }`}
+        >
+          Encounters & Notes ({filteredConsultations.length})
+        </button>
+        <button
+          onClick={() => setMobileTab('patients')}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+            mobileTab === 'patients'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-600'
+          }`}
+        >
+          Patients Roster ({filteredPatients.length})
+        </button>
       </div>
 
       {/* Main Responsive Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Registered Patients (4 cols on lg) */}
-        <div className="lg:col-span-4 medical-card rounded-2xl p-4 sm:p-5 flex flex-col h-[580px]">
+        <div className={`lg:col-span-4 medical-card rounded-2xl p-4 sm:p-5 flex flex-col h-[520px] lg:h-[580px] ${
+          mobileTab !== 'patients' ? 'hidden lg:flex' : 'flex'
+        }`}>
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center space-x-2">
               <i className="bi bi-people-fill text-sky-600"></i>
@@ -185,9 +214,30 @@ export const PatientRecordsView: React.FC<PatientRecordsViewProps> = ({
                         {patient.mrn} • {patient.age} yrs • {patient.gender}
                       </p>
                     </div>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200 group-hover:bg-sky-600 group-hover:text-white transition-all">
-                      Start Visit
-                    </span>
+                    <div className="flex items-center space-x-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedReportPatient(patient);
+                        }}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-600 hover:text-white transition-all flex items-center space-x-1"
+                        title="View previous lab reports and upload files"
+                      >
+                        <i className="bi bi-file-earmark-medical"></i>
+                        <span>Reports</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectPatientForConsultation(patient);
+                        }}
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200 group-hover:bg-sky-600 group-hover:text-white transition-all"
+                      >
+                        Start Visit
+                      </button>
+                    </div>
                   </div>
 
                   {patient.medicalHistory && (
@@ -202,7 +252,9 @@ export const PatientRecordsView: React.FC<PatientRecordsViewProps> = ({
         </div>
 
         {/* Right Column: Encounters & Documentation Records (8 cols on lg) */}
-        <div className="lg:col-span-8 medical-card rounded-2xl p-4 sm:p-5 flex flex-col h-[580px]">
+        <div className={`lg:col-span-8 medical-card rounded-2xl p-4 sm:p-5 flex flex-col h-[520px] lg:h-[580px] ${
+          mobileTab !== 'encounters' ? 'hidden lg:flex' : 'flex'
+        }`}>
           {/* Header with Search and Filter */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
             <div className="flex items-center space-x-2">
@@ -364,6 +416,13 @@ export const PatientRecordsView: React.FC<PatientRecordsViewProps> = ({
           consultationDate={new Date(selectedRxConsultation.consultationDate).toLocaleDateString()}
         />
       )}
+
+      {/* Patient Previous Reports & Upload Modal */}
+      <PatientReportsModal
+        isOpen={!!selectedReportPatient}
+        onClose={() => setSelectedReportPatient(null)}
+        patient={selectedReportPatient}
+      />
     </div>
   );
 };

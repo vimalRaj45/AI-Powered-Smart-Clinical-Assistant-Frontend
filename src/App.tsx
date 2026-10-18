@@ -5,11 +5,17 @@ import { LoginView } from './components/LoginView';
 import { LiveConsultationView } from './components/LiveConsultationView';
 import { PatientRecordsView } from './components/PatientRecordsView';
 import { MedicalCodingReferenceView } from './components/MedicalCodingReferenceModal';
+import { DiseasesReferenceView } from './components/DiseasesReferenceView';
 import { UserGuideView } from './components/UserGuideView';
 import { NewPatientModal } from './components/NewPatientModal';
 import { WhatsAppGatewayModal } from './components/WhatsAppGatewayModal';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { api } from './services/api';
 import type { Patient } from './types';
+
+import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
+import Swal from 'sweetalert2';
 
 interface DoctorUser {
   name: string;
@@ -17,6 +23,27 @@ interface DoctorUser {
   role: string;
   clinic: string;
 }
+
+export type TabType = 'consultation' | 'records' | 'coding-ref' | 'diseases-ref' | 'guide';
+
+const getInitialTabFromUrl = (): TabType => {
+  const path = window.location.pathname.toLowerCase();
+  const hash = window.location.hash.toLowerCase();
+
+  if (path.includes('/help') || path.includes('/guide') || path.includes('/docs') || hash.includes('help') || hash.includes('guide') || hash.includes('docs')) {
+    return 'guide';
+  }
+  if (path.includes('/records') || path.includes('/encounters') || path.includes('/patients') || hash.includes('records')) {
+    return 'records';
+  }
+  if (path.includes('/coding-ref') || path.includes('/coding') || path.includes('/codes') || hash.includes('coding')) {
+    return 'coding-ref';
+  }
+  if (path.includes('/diseases') || path.includes('/conditions') || path.includes('/1mg') || path.includes('/medindia') || hash.includes('diseases') || hash.includes('conditions')) {
+    return 'diseases-ref';
+  }
+  return 'consultation';
+};
 
 export function App() {
   const [loggedInDoctor, setLoggedInDoctor] = useState<DoctorUser | null>(() => {
@@ -29,9 +56,31 @@ export function App() {
     };
   });
 
-  const [activeTab, setActiveTab] = useState<'consultation' | 'records' | 'coding-ref' | 'guide'>('consultation');
+  const [activeTab, setActiveTabState] = useState<TabType>(getInitialTabFromUrl);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+
+  // Set tab and synchronize browser URL bar
+  const setActiveTab = (tab: TabType, updateHistory = true) => {
+    setActiveTabState(tab);
+    if (updateHistory && typeof window !== 'undefined') {
+      const urlPath = tab === 'guide' ? '/help' : tab === 'consultation' ? '/' : `/${tab}`;
+      window.history.pushState({ tab }, '', urlPath);
+    }
+  };
+
+  // Sync browser Back/Forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveTabState(getInitialTabFromUrl());
+    };
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
+  }, []);
   
   // Responsive Navigation States
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState<boolean>(() => {
@@ -44,6 +93,61 @@ export function App() {
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [isBackendConnected, setIsBackendConnected] = useState(false);
   const [isWhatsAppConnected, setIsWhatsAppConnected] = useState(false);
+
+  // Android Native Hardware Back Button Interceptor
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    let lastBackPress = 0;
+    const backSubPromise = CapacitorApp.addListener('backButton', () => {
+      // 1. Close open modals or drawers if present
+      if (isNewPatientModalOpen) {
+        setIsNewPatientModalOpen(false);
+        return;
+      }
+      if (isWhatsAppModalOpen) {
+        setIsWhatsAppModalOpen(false);
+        return;
+      }
+      if (isMobileDrawerOpen) {
+        setIsMobileDrawerOpen(false);
+        return;
+      }
+
+      // 2. Close any open SweetAlert modal
+      const swalContainer = document.querySelector('.swal2-container');
+      if (swalContainer) {
+        Swal.close();
+        return;
+      }
+
+      // 3. Return to consultation home tab if on another view
+      if (activeTab !== 'consultation') {
+        setActiveTab('consultation');
+        return;
+      }
+
+      // 4. Double back to exit protection
+      const now = Date.now();
+      if (now - lastBackPress < 2000) {
+        CapacitorApp.exitApp();
+      } else {
+        lastBackPress = now;
+        Swal.fire({
+          toast: true,
+          position: 'bottom',
+          icon: 'info',
+          title: 'Press back again to exit',
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
+    });
+
+    return () => {
+      backSubPromise.then((sub) => sub.remove()).catch(() => {});
+    };
+  }, [isNewPatientModalOpen, isWhatsAppModalOpen, isMobileDrawerOpen, activeTab]);
 
   // Save desktop sidebar preference
   const toggleDesktopSidebar = () => {
@@ -77,8 +181,7 @@ export function App() {
         try {
           await api.getHealth();
           setIsBackendConnected(true);
-          const waRes = await fetch('/api/whatsapp/status');
-          const waData = await waRes.json();
+          const waData = await api.getWhatsAppStatus();
           setIsWhatsAppConnected(!!waData.connected);
         } catch {
           setIsBackendConnected(false);
@@ -158,7 +261,7 @@ export function App() {
         />
 
         {/* MAIN CLINICAL VIEW AREA */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-2.5 sm:px-6 lg:px-8 py-3 sm:py-6 pb-24 lg:pb-8">
           {activeTab === 'consultation' && (
             <LiveConsultationView
               patients={patients}
@@ -178,19 +281,30 @@ export function App() {
 
           {activeTab === 'coding-ref' && <MedicalCodingReferenceView />}
 
+          {activeTab === 'diseases-ref' && <DiseasesReferenceView />}
+
           {activeTab === 'guide' && (
             <UserGuideView onStartWorkflow={handleStartWorkflow} />
           )}
         </main>
 
         {/* FOOTER */}
-        <footer className="w-full border-t border-slate-200 bg-white py-3 px-6 text-center text-xs text-slate-500">
+        <footer className="hidden lg:block w-full border-t border-slate-200 bg-white py-3 px-6 text-center text-xs text-slate-500">
           <p className="flex items-center justify-center space-x-1">
             <i className="bi bi-heart-pulse-fill text-sky-600"></i>
             <span>Dr. Priya Clinical Assistant • Smart Clinical Documentation & Medical Coding Studio</span>
           </p>
         </footer>
       </div>
+
+      {/* NATIVE MOBILE BOTTOM NAVIGATION */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onNewPatientClick={() => setIsNewPatientModalOpen(true)}
+        onWhatsAppClick={() => setIsWhatsAppModalOpen(true)}
+        isWhatsAppConnected={isWhatsAppConnected}
+      />
 
       {/* MODALS */}
       <NewPatientModal

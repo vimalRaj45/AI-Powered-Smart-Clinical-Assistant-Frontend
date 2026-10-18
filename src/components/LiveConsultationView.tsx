@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Swal from 'sweetalert2';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
+import { useLiveSpeechAgent } from '../hooks/useLiveSpeechAgent';
 import { AudioVisualizer } from './AudioVisualizer';
 import { ExtractedEntitiesCard } from './ExtractedEntitiesCard';
 import { SoapNoteEditor } from './SoapNoteEditor';
 import { MedicalCodingDrawer } from './MedicalCodingDrawer';
 import { AutomationController } from './AutomationController';
 import { PrescriptionAndBillingModal } from './PrescriptionAndBillingModal';
+import { PatientReportsModal } from './PatientReportsModal';
 import { api } from '../services/api';
 import type { Patient, AIClinicalResult, SoapNoteData, IcdCodeItem, CptCodeItem } from '../types';
 
@@ -45,6 +47,41 @@ const PRESET_SCRIPTS = [
     text: 'मरीज को 3 दिनों से तेज बुखार और सूखी खांसी की शिकायत है। शरीर का तापमान 101.4°F मापा गया है। बीपी 120/80 mmHg और पल्स 84 प्रति मिनट है। गले में हल्की लालिमा है। मरीज को पेरासिटामोल 650mg दिन में तीन बार 3 दिन के लिए और गर्म पानी की भाप लेने की सलाह दी गई है।',
   },
   {
+    title: 'Chest Pain & Palpitations (Cardiology)',
+    badge: 'English 🇬🇧',
+    icon: 'bi-heart-pulse-fill',
+    lang: 'en-US',
+    text: 'Patient presents with retrosternal chest tightness and occasional palpitations lasting 2 days, aggravated by exertion. Blood pressure is 142/88 mmHg, heart rate 92 bpm regular, respiratory rate 18, SpO2 99%. Cardiovascular exam reveals regular S1/S2 with no murmurs. ECG 12-lead performed showing normal sinus rhythm without acute ST-segment changes. Ordered serial Troponin I, lipid profile, and prescribed Metoprolol Tartrate 25mg BID and sublingual Nitroglycerin PRN.',
+  },
+  {
+    title: 'Acid Reflux & GERD (Gastroenterology)',
+    badge: 'English 🇬🇧',
+    icon: 'bi-fire',
+    lang: 'en-US',
+    text: '42-year-old patient reports burning epigastric discomfort, acid regurgitation, and postprandial fullness for 3 weeks, worse when lying flat after meals. Blood pressure 124/78 mmHg, heart rate 72 bpm, weight 74 kg. Abdomen is soft, mild epigastric tenderness on deep palpation, normal bowel sounds. Prescribed Pantoprazole 40mg once daily before breakfast for 4 weeks and antacid syrup 10ml after meals. Advised dietary modifications: avoid spicy foods, caffeine, and elevate head of bed.',
+  },
+  {
+    title: 'Knee Pain & Osteoarthritis (Orthopedics)',
+    badge: 'English 🇬🇧',
+    icon: 'bi-activity',
+    lang: 'en-US',
+    text: '62-year-old patient presents with bilateral knee pain, predominantly in the right medial joint line for 4 months. Reports morning stiffness lasting 20 minutes and crepitus upon standing. Blood pressure 130/82 mmHg, BMI 29.1. Right knee reveals mild joint effusion, medial joint line tenderness, range of motion 0 to 115 degrees. X-ray bilateral knees shows medial joint space narrowing and subchondral sclerosis. Prescribed Aceclofenac 100mg + Paracetamol 325mg BD with food for 7 days, Glucosamine sulfate 1500mg OD, and referred for quadriceps strengthening physical therapy.',
+  },
+  {
+    title: 'Allergic Dermatitis & Eczema (Dermatology)',
+    badge: 'English 🇬🇧',
+    icon: 'bi-bandaid-fill',
+    lang: 'en-US',
+    text: 'Patient presents with an intensely pruritic erythematous maculopapular rash over the bilateral flexor surfaces of the forearms and neck for 5 days following exposure to new cosmetic lotion. Vitals are stable: temperature 98.4°F, pulse 76 bpm. Skin inspection reveals well-demarcated erythematous plaques with superficial excoriations and mild scaling. Prescribed Hydrocortisone 1% cream topically twice daily for 7 days, Levocetirizine 5mg at bedtime for 5 days, and advised gentle soap substitutes and fragrance-free emollient moisturizers.',
+  },
+  {
+    title: 'Diabetes & Hypertension Follow-up',
+    badge: 'English 🇬🇧',
+    icon: 'bi-clipboard2-pulse-fill',
+    lang: 'en-US',
+    text: '58-year-old patient here for routine hypertension and type 2 diabetes follow-up. Blood pressure is 148/92 mmHg, pulse 76 bpm, BMI 28.4. Patient reports occasional morning headaches and mild fatigue for 2 weeks. Current medication: Metformin 500mg BID. Added Lisinopril 10mg daily for blood pressure control and ordered fasting lipid panel and HbA1c testing.',
+  },
+  {
     title: 'Fiebre y Tos (Spanish Dictation)',
     badge: 'Spanish 🇪🇸',
     icon: 'bi-globe2',
@@ -59,11 +96,11 @@ const PRESET_SCRIPTS = [
     text: 'Le patient consulte pour une fièvre et une toux persistante depuis 3 jours. Température mesurée à 38.3°C (101°F), tension artérielle à 120/80 mmHg, fréquence cardiaque à 84 bpm. Examen oropharyngé montre une légère rougeur. Prescription de Paracétamol 650mg 3 fois par jour pendant 3 jours.',
   },
   {
-    title: 'Diabetes & Hypertension Follow-up',
-    badge: 'English 🇬🇧',
-    icon: 'bi-heart-pulse',
-    lang: 'en-US',
-    text: '58-year-old patient here for routine hypertension and type 2 diabetes follow-up. Blood pressure is 148/92 mmHg, pulse 76 bpm, BMI 28.4. Patient reports occasional morning headaches and mild fatigue for 2 weeks. Current medication: Metformin 500mg BID. Added Lisinopril 10mg daily for blood pressure control and ordered fasting lipid panel and HbA1c testing.',
+    title: 'Halsweh & Bronchitis (German Dictation)',
+    badge: 'German 🇩🇪',
+    icon: 'bi-translate',
+    lang: 'de-DE',
+    text: 'Der Patient klagt über starke Halsschmerzen, Reizhusten und leichtes Fieber seit 4 Tagen. Körpertemperatur 38,5°C, Blutdruck 125/82 mmHg, Puls 86 bpm. Racheninspektion zeigt gerötete Schleimhäute. Empfehlung: Ibuprofen 400mg dreimal täglich bei Bedarf, pflanzlicher Hustensaft und warme Inhalationen.',
   },
   {
     title: 'காய்ச்சல் மற்றும் இருமல் (Tamil Dictation)',
@@ -71,6 +108,13 @@ const PRESET_SCRIPTS = [
     icon: 'bi-translate',
     lang: 'ta-IN',
     text: 'நோயாளிக்கு மூன்று நாட்களாக கடுமையான காய்ச்சல் மற்றும் இருமல் உள்ளது. உடல் வெப்பநிலை 101°F, இரத்த அழுத்தம் 120/80 mmHg, நாடித்துடிப்பு 84 bpm. பாராசிட்டமால் 650mg மூன்று வேளை 3 நாட்களுக்கு பரிந்துரைக்கப்பட்டது.',
+  },
+  {
+    title: 'ألم الحلق والسعال (Arabic Dictation)',
+    badge: 'Arabic 🇸🇦',
+    icon: 'bi-translate',
+    lang: 'ar-SA',
+    text: 'يعاني المريض من ارتفاع درجة الحرارة والسعال الجاف منذ ثلاثة أيام. درجة حرارة الجسم 38.4 مئوية، وضغط الدم 120/80، والنبض 80 نبضة في الدقيقة. تم وصف الباراسيتامول 650 ملغ ثلاث مرات يومياً مع شرب السوائل الدافئة.',
   },
 ];
 
@@ -98,6 +142,39 @@ export const LiveConsultationView: React.FC<LiveConsultationViewProps> = ({
   const [selectedLanguage, setSelectedLanguage] = useState('auto');
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isProcessingAI, setIsProcessingAI] = useState(false);
+
+  // Live Speech Recognition Hook for real-time Tamil/English voice dictation
+  const activeLangCode =
+    selectedLanguage === 'auto'
+      ? 'en-IN'
+      : SUPPORTED_LANGUAGES.find((l) => l.code === selectedLanguage)?.langCode || 'en-IN';
+
+  const {
+    isListening: isLiveSpeechListening,
+    liveInterim,
+    speechError,
+    startListening: startLiveSpeech,
+    stopListening: stopLiveSpeech,
+  } = useLiveSpeechAgent({
+    language: activeLangCode,
+    onTranscriptChange: (spokenChunk) => {
+      setTranscript((prev) => (prev ? `${prev} ${spokenChunk}` : spokenChunk));
+    },
+  });
+
+  const handleStartCombinedRecording = async () => {
+    try {
+      startLiveSpeech();
+      await startRecording();
+    } catch (e: any) {
+      console.warn('Start recording notice:', e);
+    }
+  };
+
+  const handleStopCombinedRecording = () => {
+    stopLiveSpeech();
+    stopRecording();
+  };
   
   // Autonomous Demo State
   const [isAutoDemoRunning, setIsAutoDemoRunning] = useState(false);
@@ -117,6 +194,7 @@ export const LiveConsultationView: React.FC<LiveConsultationViewProps> = ({
   const [doctorName, setDoctorName] = useState('Dr. Priya MD');
   const [isApproving, setIsApproving] = useState(false);
   const [isRxBillModalOpen, setIsRxBillModalOpen] = useState(false);
+  const [isPatientReportsModalOpen, setIsPatientReportsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!selectedPatient && patients.length > 0) {
@@ -596,7 +674,7 @@ export const LiveConsultationView: React.FC<LiveConsultationViewProps> = ({
 
       {/* 1-CLICK AUTOMATED FULL FLOW DEMO HERO BANNER (REFINED HIGH-CONTRAST MEDICAL CARD) */}
       <div 
-        className="rounded-3xl p-5 sm:p-6 shadow-xl border border-sky-800/30 text-white relative overflow-hidden"
+        className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border border-sky-800/30 text-white relative overflow-hidden"
         style={{
           background: 'linear-gradient(135deg, #091e3a 0%, #034b75 50%, #0c2d48 100%)',
         }}
@@ -604,90 +682,92 @@ export const LiveConsultationView: React.FC<LiveConsultationViewProps> = ({
         {/* Subtle Background Glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="relative z-10 space-y-4">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="relative z-10 space-y-3.5 sm:space-y-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
             <div className="space-y-1.5 max-w-2xl">
-              <div className="flex items-center space-x-2.5">
-                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-extrabold tracking-wide border border-emerald-400/40 uppercase">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                  <span>Any Language Supported 🌍</span>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] sm:text-[11px] font-extrabold tracking-wide border border-emerald-400/40 uppercase">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                  <span>Any Language 🌍</span>
                 </span>
-                <span className="text-xs font-semibold text-sky-200">
+                <span className="text-[11px] sm:text-xs font-semibold text-sky-200 truncate">
                   English • Hindi • Spanish • French • Tamil & More
                 </span>
               </div>
-              <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
+              <h2 className="text-base sm:text-xl font-extrabold text-white tracking-tight">
                 1-Click Multilingual Autonomous Clinical Demo
               </h2>
-              <p className="text-xs text-sky-100/90 leading-relaxed">
-                Dictate in <strong className="text-white">ANY language</strong> (Hindi, Spanish, French, Tamil, English, etc.). The AI automatically comprehends the clinical conversation, extracts vitals & symptoms, structures standard SOAP notes, assigns ICD-10/CPT codes, and certifies the record!
+              <p className="text-[11px] sm:text-xs text-sky-100/90 leading-relaxed">
+                Dictate in <strong className="text-white">ANY language</strong> (Hindi, Spanish, French, Tamil, English, etc.). The AI automatically parses vitals, SOAP notes, and ICD-10/CPT codes!
               </p>
             </div>
 
             <button
               onClick={() => run1ClickAutomatedDemo(0)}
               disabled={isAutoDemoRunning}
-              className="flex items-center justify-center space-x-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 text-xs font-black shadow-lg shadow-emerald-950/40 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 whitespace-nowrap self-start lg:self-center"
+              className="w-full lg:w-auto flex items-center justify-center space-x-2 px-5 py-3 rounded-xl sm:rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 text-xs font-black shadow-lg shadow-emerald-950/40 transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
             >
-              <i className="bi bi-play-circle-fill text-lg"></i>
+              <i className="bi bi-play-circle-fill text-base sm:text-lg"></i>
               <span>{isAutoDemoRunning ? 'Running Automation...' : '⚡ Run 1-Click Full Demo'}</span>
             </button>
           </div>
 
-          {/* Quick Scenario Selection Bar with Multilingual Flags */}
-          <div className="pt-3.5 border-t border-white/15 flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-bold text-sky-300 uppercase tracking-wider mr-1">
+          {/* Quick Scenario Selection Bar with Smooth Horizontal Mobile Scrolling */}
+          <div className="pt-2.5 sm:pt-3.5 border-t border-white/15">
+            <p className="text-[10px] sm:text-[11px] font-bold text-sky-300 uppercase tracking-wider mb-2">
               Multilingual Demo Scenarios:
-            </span>
-            {PRESET_SCRIPTS.map((script, idx) => (
-              <button
-                key={idx}
-                onClick={() => run1ClickAutomatedDemo(idx)}
-                disabled={isAutoDemoRunning}
-                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all border border-white/20 hover:border-sky-300 flex items-center space-x-2 disabled:opacity-50 shadow-sm"
-              >
-                <i className={`bi ${script.icon} text-sky-300 text-sm`}></i>
-                <span>{script.title}</span>
-                <span className="px-1.5 py-0.5 rounded bg-white/15 text-[10px] text-sky-200 font-bold border border-white/20">{script.badge}</span>
-              </button>
-            ))}
+            </p>
+            <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-none snap-x -mx-1 px-1">
+              {PRESET_SCRIPTS.map((script, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => run1ClickAutomatedDemo(idx)}
+                  disabled={isAutoDemoRunning}
+                  className="shrink-0 snap-start px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold transition-all border border-white/20 hover:border-sky-300 flex items-center space-x-1.5 disabled:opacity-50 shadow-sm whitespace-nowrap active:scale-95"
+                >
+                  <i className={`bi ${script.icon} text-sky-300 text-xs`}></i>
+                  <span>{script.title}</span>
+                  <span className="px-1 py-0.2 rounded bg-white/15 text-[9px] text-sky-200 font-bold border border-white/20">{script.badge}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Patient Header Card */}
-      <div id="patient-header-section" className="medical-card rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center space-x-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-sky-100 text-sky-800 border border-sky-300 flex items-center justify-center font-bold text-base shadow-sm">
-            {selectedPatient?.name ? selectedPatient.name.charAt(0) : <i className="bi bi-person-fill text-xl"></i>}
+      <div id="patient-header-section" className="medical-card rounded-2xl p-3.5 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-sky-100 text-sky-800 border border-sky-300 flex items-center justify-center font-bold text-sm sm:text-base shadow-sm flex-shrink-0">
+            {selectedPatient?.name ? selectedPatient.name.charAt(0) : <i className="bi bi-person-fill text-lg"></i>}
           </div>
-          <div>
-            <div className="flex items-center space-x-2.5">
-              <h2 className="text-base font-bold text-slate-900">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center space-x-2">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 truncate">
                 {selectedPatient?.name || 'No Patient Selected'}
               </h2>
               {selectedPatient && (
-                <span className="font-mono text-xs px-2.5 py-0.5 rounded-lg bg-sky-50 text-sky-800 border border-sky-300 font-extrabold">
+                <span className="font-mono text-[10px] sm:text-xs px-2 py-0.5 rounded-md sm:rounded-lg bg-sky-50 text-sky-800 border border-sky-300 font-extrabold flex-shrink-0">
                   {selectedPatient.mrn}
                 </span>
               )}
             </div>
             {selectedPatient ? (
-              <p className="text-xs text-slate-600 mt-1">
-                <span className="font-semibold text-slate-700">{selectedPatient.age} yrs</span> • {selectedPatient.gender} • History: {selectedPatient.medicalHistory || 'None'} • Allergies:{' '}
-                <span className="text-rose-700 font-bold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">{selectedPatient.allergies || 'NKDA'}</span>
+              <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 truncate">
+                <span className="font-semibold text-slate-700">{selectedPatient.age} yrs</span> • {selectedPatient.gender} • <span className="hidden sm:inline">History: {selectedPatient.medicalHistory || 'None'} • </span>Allergies:{' '}
+                <span className="text-rose-700 font-bold bg-rose-50 px-1 py-0.2 rounded border border-rose-200 text-[10px]">{selectedPatient.allergies || 'NKDA'}</span>
               </p>
             ) : (
-              <p className="text-xs text-slate-500 mt-0.5">Select a patient below to start documenting.</p>
+              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">Select a patient below to start documenting.</p>
             )}
           </div>
         </div>
 
-        {/* Patient Selection Dropdown */}
-        <div className="flex items-center space-x-2">
+        {/* Patient Selection Dropdown & New Patient Button */}
+        <div className="flex items-center space-x-2 w-full md:w-auto">
           <select
             id="patient-select-dropdown"
-            className="px-3.5 py-2.5 rounded-xl text-xs medical-input bg-white font-semibold text-slate-800 min-w-[220px]"
+            className="flex-1 md:flex-initial px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs medical-input bg-white font-semibold text-slate-800 min-w-0 md:min-w-[220px]"
             value={selectedPatient?.id || ''}
             onChange={(e) => {
               const p = patients.find((pat) => pat.id === Number(e.target.value));
@@ -702,11 +782,23 @@ export const LiveConsultationView: React.FC<LiveConsultationViewProps> = ({
           </select>
           <button
             onClick={onNewPatientClick}
-            className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 whitespace-nowrap transition-all"
+            className="px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 whitespace-nowrap transition-all flex-shrink-0"
           >
-            <i className="bi bi-person-plus-fill mr-1.5 text-sky-600"></i>
-            <span>New Patient</span>
+            <i className="bi bi-person-plus-fill mr-1 text-sky-600"></i>
+            <span className="hidden xs:inline">New Patient</span>
+            <span className="xs:hidden">+</span>
           </button>
+          {selectedPatient && (
+            <button
+              onClick={() => setIsPatientReportsModalOpen(true)}
+              className="px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 whitespace-nowrap transition-all flex items-center space-x-1.5 flex-shrink-0 shadow-sm"
+              title="View previous lab reports & diagnostic scans"
+            >
+              <i className="bi bi-file-earmark-medical-fill text-indigo-600"></i>
+              <span className="hidden sm:inline">Reports & Scans</span>
+              <span className="sm:hidden">Reports</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -763,28 +855,44 @@ export const LiveConsultationView: React.FC<LiveConsultationViewProps> = ({
                 </span>
               </div>
 
-              {/* Real-time Canvas Wave Visualizer */}
-              <div className="h-16 bg-white rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center shadow-inner">
-                {isRecording ? (
-                  <AudioVisualizer isRecording={isRecording} frequencyData={frequencyData} />
+              {/* Real-time Canvas Wave Visualizer & Live Speech Preview */}
+              <div className="h-16 bg-white rounded-xl border border-slate-200 overflow-hidden flex flex-col items-center justify-center shadow-inner p-2 relative">
+                {isRecording || isLiveSpeechListening ? (
+                  <>
+                    <AudioVisualizer isRecording={isRecording || isLiveSpeechListening} frequencyData={frequencyData} />
+                    {liveInterim && (
+                      <div className="absolute bottom-1 px-2.5 py-0.5 rounded-full bg-sky-900/80 text-white text-[10px] font-semibold max-w-[90%] truncate animate-pulse shadow-sm">
+                        <i className="bi bi-mic-fill text-rose-400 mr-1"></i>
+                        {liveInterim}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <p className="text-xs text-slate-400 font-medium flex items-center space-x-1.5">
                     <i className="bi bi-soundwave text-sky-500 text-base"></i>
-                    <span>Speak naturally in English, Hindi, Spanish, French, Tamil...</span>
+                    <span>Speak naturally in English, Tamil (தமிழ்), Hindi, etc...</span>
                   </p>
                 )}
               </div>
 
+              {/* Speech Error Banner if any */}
+              {speechError && (
+                <div className="p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-medium flex items-center space-x-1.5">
+                  <i className="bi bi-exclamation-triangle-fill text-rose-600"></i>
+                  <span>{speechError}</span>
+                </div>
+              )}
+
               {/* Recorder Action Buttons */}
               <div className="flex items-center justify-center space-x-2 pt-1">
-                {!isRecording ? (
+                {!isRecording && !isLiveSpeechListening ? (
                   <button
                     id="start-dictation-btn"
-                    onClick={startRecording}
+                    onClick={handleStartCombinedRecording}
                     className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-extrabold shadow-sm transition-all hover:scale-105 active:scale-95"
                   >
                     <i className="bi bi-record-circle-fill text-rose-300"></i>
-                    <span>Start Dictation</span>
+                    <span>Start Live Voice Dictation</span>
                   </button>
                 ) : (
                   <>
@@ -796,11 +904,11 @@ export const LiveConsultationView: React.FC<LiveConsultationViewProps> = ({
                       {isPaused ? 'Resume' : 'Pause'}
                     </button>
                     <button
-                      onClick={stopRecording}
+                      onClick={handleStopCombinedRecording}
                       className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition-all"
                     >
                       <i className="bi bi-stop-fill mr-1"></i>
-                      <span>Stop & Process</span>
+                      <span>Stop & Capture</span>
                     </button>
                   </>
                 )}
@@ -813,7 +921,7 @@ export const LiveConsultationView: React.FC<LiveConsultationViewProps> = ({
                       className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50"
                     >
                       <i className="bi bi-translate mr-1.5"></i>
-                      <span>Transcribe</span>
+                      <span>AI Whisper Transcribe</span>
                     </button>
                     <button
                       onClick={clearAudio}
@@ -858,15 +966,15 @@ export const LiveConsultationView: React.FC<LiveConsultationViewProps> = ({
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 Multilingual Clinical Presets:
               </p>
-              <div className="grid grid-cols-2 gap-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 {PRESET_SCRIPTS.map((script, idx) => (
                   <button
                     key={idx}
                     onClick={() => setTranscript(script.text)}
-                    className="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50 border border-slate-200 hover:border-sky-300 text-[11px] text-slate-700 font-medium transition-all group"
+                    className="text-left p-2 rounded-xl bg-slate-50 hover:bg-sky-50 border border-slate-200 hover:border-sky-300 text-[11px] text-slate-700 font-medium transition-all group flex items-center justify-between"
                   >
-                    <span className="font-bold text-slate-900 group-hover:text-sky-700 block truncate">{script.title}</span>
-                    <span className="text-[10px] text-sky-600 font-semibold">{script.badge}</span>
+                    <span className="font-bold text-slate-900 group-hover:text-sky-700 truncate pr-2">{script.title}</span>
+                    <span className="text-[10px] text-sky-600 font-semibold shrink-0">{script.badge}</span>
                   </button>
                 ))}
               </div>
@@ -1005,6 +1113,13 @@ export const LiveConsultationView: React.FC<LiveConsultationViewProps> = ({
             });
           }
         }}
+      />
+
+      {/* Patient Previous Reports & Lab Upload Modal */}
+      <PatientReportsModal
+        isOpen={isPatientReportsModalOpen}
+        onClose={() => setIsPatientReportsModalOpen(false)}
+        patient={selectedPatient}
       />
     </div>
   );
